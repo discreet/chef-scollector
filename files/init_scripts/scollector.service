@@ -1,0 +1,13 @@
+[Unit]
+Description=Scollector Service
+After=network.target
+
+[Service]
+Type=simple
+User=root
+ExecStart=/usr/local/bin/scollector -conf=/etc/scollector/scollector.toml
+Restart=on-abort
+
+
+[Install]
+WantedBy=multi-user.target

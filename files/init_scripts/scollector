@@ -1,0 +1,84 @@
+#!/bin/sh
+
+# Semi Universal start-stop script
+# Keep it sh compatible, test with bash, dash, ksh, and zsh.
+
+SCRIPT_DIR="/usr/local/scollector"
+SCOLLECTOR_PATH="/usr/local/scollector"
+LOG="/var/log/scollector.log"
+# HOSTNAME=$(hostname)
+# PIDFILE="/var/run/scollector.pid'"
+# chkconfig: 2345 99 10
+
+PROG=$SCOLLECTOR_PATH/scollector
+COMMAND=$1
+
+ARGS="-conf=/etc/scollector/scollector.toml"
+
+# Sanity checks.
+test -d "$SCOLLECTOR_PATH" || {
+    echo >&2 "No such directory: $SCOLLECTOR_PATH"
+    echo >&2 "You might need to set the SCOLLECTOR_PATH variable in $0"
+    exit 2
+}
+
+test -f "$PROG" || {
+    echo >&2 "No such file: $PROG"
+    echo >&2 "You might need to set the SCOLLECTOR_PATH variable in $0"
+    exit 3
+}
+
+start () {
+    echo "Starting $PROG"
+    # eval is neccesary for zsh support as multiple-word variables are not
+    # split into words by default, see zsh help for SH_WORD_SPLIT.
+    eval "$PROG $ARGS" >> $LOG 2>&1 &
+}
+
+stop_program () {
+    echo "Stopping $PROG"
+    pkill $1 -f "$PROG"
+}
+
+status () {
+    if pgrep -f "$PROG" >/dev/null; then
+        echo "$PROG" running
+        return 0
+    fi
+    return 1
+}
+
+restart () {
+    stop_program
+    try=1
+    sleep 1
+    while status; do
+        try=$((try + 1))
+        if [ $try -gt 3 ]; then
+            stop_program -9
+        else
+            stop_program
+        fi
+        echo "Waiting for $PROG to die.."
+        sleep 5
+    done
+    start
+}
+
+case $COMMAND in
+    start) status || start
+        ;;
+    restart)
+        restart
+        ;;
+    'stop')
+        # stop is an alias in ksh93 for 'kill -s STOP'
+        stop_program
+        ;;
+    status) status
+            exit $?
+        ;;
+    *)  echo >&2 "usage: $0 <start [args]|stop|restart|status>"
+        exit 1
+        ;;
+esac

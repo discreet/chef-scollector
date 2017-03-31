@@ -1,0 +1,44 @@
+# This file is managed by Chef
+# Do not edit directly
+# Your changed will be overwritten
+##################################
+<% if @user.nil? and @password.nil? %>
+Host = "<%= @proto %>://<%= @host %>:<%= @port %>"
+<% else -%>
+Host = "<%= @proto %>://<%= @user %>:<%= @password %>@<%= @host %>:<%= @port %>"
+<% end -%>
+<% unless @external_collector.nil? %>
+ColDir = "<%= @external_collector %>"
+<% end -%>
+Freq = <%= @freq %>
+FullHost = <%= @full_host %>
+
+<% unless @tag_override.empty? -%>
+[[TagOverride]]
+  CollectorExpr = ''
+  [TagOverride.Tags]
+<% @tag_override.each do |k,v| -%>
+  <%= k %> = <%= v %>
+<% end -%>
+<% end -%>
+
+<% unless @collector.empty? -%>
+<% @collector.each do |k,v| -%>
+[[<%= v['collector'] %>]]
+<% unless v['command'].nil? -%>
+  Command = <%= v['command'] %>
+<% end -%>
+<% unless  v['name'].nil? -%>
+  Name = <%= v['name'] %>
+<% end -%>
+<% unless v['args'].nil? -%>
+  Args = <%= v['args'] %>
+<% end -%>
+<% unless v['toml'].nil? -%>
+  TOML = '<%= v['toml'] %>'
+<% end -%>
+<% unless v['freq'].nil? -%>
+  Freq = '<%= v['freq'] -%>'
+<% end %>
+<% end -%>
+<% end -%>
