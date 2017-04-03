@@ -18,33 +18,33 @@ when 'linux'
   default['scollector']['ext']          = ''
   default['scollector']['install_path'] = '/usr/local/scollector'
   default['scollector']['config_path']  = '/etc/scollector'
-  default['collector']['collector_dir'] = "#{config_path}/collectors"
+  default['collector']['collector_dir'] = "#{default['scollector']['config_path']}/collectors"
 when 'windows'
   default['scollector']['system_os']    = 'windows'
   default['scollector']['ext']          = '.exe'
   default['scollector']['install_path'] = 'C:/Program Files/scollector'
   default['scollector']['config_path']  = install_path
-  default['collector']['collector_dir'] = "#{install_path}/collectors"
+  default['collector']['collector_dir'] = "#{default['scollector']['install_path']}/collectors"
 else
   Chef::Log.fatal("#{node['kernel']['name']} is not supported")
 end
 
-if ['scollector']['use_external'].empty? or ['scollector']['use_external'].nil?
+if default['scollector']['use_external'].empty? or default['scollector']['use_external'].nil?
   default['collector']['collector_freq_dir'] = []
 else
   default['collector']['collector_freq_dir'] = Array.new
-  ['collector']['freq_dir'].each do |freq_dir|
-    ['collector']['collector_freq_dir'] << "#{['collector']['collector_dir']}/#{['collector']['freq_dir']}"
+  default['collector']['freq_dir'].each do |freq_dir|
+    default['collector']['collector_freq_dir'] << "#{default['collector']['collector_dir']}/#{default['collector']['freq_dir']}"
   end
 end
 
 if node['kernel']['machine'].include?('64')
-  ['scollector']['system_arch'] = 'amd64'
+  default['scollector']['system_arch'] = 'amd64'
 else
   Chef::Log.fatal("#{node['kernel']['machine']} is not supported")
 end
 
-['scollector']['binary']       = "scollector-#{['scollector']['system_os']}-#{['scollector']['system_arch']}#{['scollector']['ext']}"
-['scollector']['download_url'] = "https://github.com/bosun-monitor/bosun/releases/download/#{['scollector']['version']}/#{['scollector']['binary']}"
-['scollector']['ingredient']   = node['kernel']['name'].downcase
+default['scollector']['binary']       = "scollector-#{default['scollector']['system_os']}-#{default['scollector']['system_arch']}#{default['scollector']['ext']}"
+default['scollector']['download_url'] = "https://github.com/bosun-monitor/bosun/releases/download/#{default['scollector']['version']}/#{default['scollector']['binary']}"
+default['scollector']['ingredient']   = node['kernel']['name'].downcase
 
